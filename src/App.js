@@ -1,24 +1,26 @@
-import logo from './logo.svg';
-import './App.css';
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
+import RsvpPage from "./RsvpPage";
+import SummaryPage from "./SummaryPage";
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Router>
+      <Routes>
+        {/* Default route redirects to /summary */}
+        <Route path="/" element={<Navigate to="/summary" replace />} />
+
+        {/* RSVP page */}
+        <Route path="/rsvp/:uniqueId" element={<RsvpPage />} />
+
+        {/* Summary page */}
+        <Route path="/summary" element={<SummaryPage />} />
+      </Routes>
+    </Router>
   );
 }
 
