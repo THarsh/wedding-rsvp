@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useLocation } from "react-router-dom";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { db } from "../../firebase";
-import { Row, Col, Spin, Input, Button, Radio, Modal, Statistic } from "antd";
+import { Row, Col, Spin, Input, Button, Radio, Modal } from "antd";
 import { LoadingOutlined } from "@ant-design/icons";
 import styles from "./style.module.scss";
 import dayjs from "dayjs";
@@ -23,8 +23,6 @@ export default function RsvpPage() {
   const cutoffMillis = cutoffDate.getTime();
   const now = Date.now();
   const [expired] = useState(now > cutoffMillis);
-
-  console.log("guest-->", guest);
 
   useEffect(() => {
     const fetchGuest = async () => {
