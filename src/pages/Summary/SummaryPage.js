@@ -270,9 +270,15 @@ export default function SummaryPage() {
             onChange={(e) => setUniqueId(e.target.value)}
           />
           <Input
+            type="number"
             placeholder="Max count"
             value={maxCount}
-            onChange={(e) => seMaxCount(e.target.value)}
+            onChange={(e) => {
+              const value = e.target.value;
+              if (/^\d*$/.test(value)) {
+                seMaxCount(value);
+              }
+            }}
           />
           <Input
             placeholder="Token"
