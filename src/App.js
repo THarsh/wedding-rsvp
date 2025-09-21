@@ -4,8 +4,9 @@ import {
   Route,
   Navigate,
 } from "react-router-dom";
-import RsvpPage from "./RsvpPage";
-import SummaryPage from "./SummaryPage";
+import RsvpPage from "./pages/Rsvp/RsvpPage";
+import SummaryPage from "./pages/Summary/SummaryPage";
+import "antd/dist/reset.css";
 
 function App() {
   return (
