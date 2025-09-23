@@ -127,13 +127,15 @@ export default function RsvpPage() {
   const renderConfirmedYes = () => (
     <>
       <p>
-        Your attendance has been confirmed. The updated count is{" "}
-        <strong>{guest.attendance_updated_count}</strong>.
+        We are pleased to confirm your participation, with{" "}
+        <strong>{guest.attendance_updated_count}</strong> seats reserved in your
+        name.
       </p>
       {!expired && (
         <p style={{ marginBottom: 12 }}>
-          Change RSVP available until:{" "}
-          <strong>{dayjs(cutoffMillis).format("YYYY/MM/DD")}</strong>
+          Change of plans?
+          <br /> Don't worry! Update your RSVP before{" "}
+          <strong>{dayjs(cutoffMillis).format("MMMM,DD")}</strong>.
         </p>
       )}
       <Button
@@ -172,11 +174,11 @@ export default function RsvpPage() {
   const renderRsvpForm = () => (
     <>
       <div>
-        <p>We are warmly inviting you to celebrate our wedding!</p>
+        <p>We are delighted to invite you to be a part of our special day!</p>
         <p style={{ marginBottom: 20 }}>
-          You have <strong>{guest.attendance_max_count}</strong> seats reserved.
-          Kindly confirm your attendance at your earliest convenience so we can
-          make the necessary arrangements.
+          You have <strong>{guest.attendance_max_count}</strong> seats reserved.
+          Kindly confirm your participation at your earliest convenience so we
+          can make the necessary arrangements.
         </p>
 
         <Radio.Group
@@ -185,9 +187,9 @@ export default function RsvpPage() {
           style={{ marginBottom: 20 }}
         >
           <Radio value="yes" style={{ marginBottom: 15 }}>
-            Yes, Happy to participate
+            Yes, I’d be delighted to take part
           </Radio>
-          <Radio value="no">No, Sorry for the inconvenience</Radio>
+          <Radio value="no">Unfortunately, I won’t be able to attend</Radio>
         </Radio.Group>
       </div>
       {showCount && (
