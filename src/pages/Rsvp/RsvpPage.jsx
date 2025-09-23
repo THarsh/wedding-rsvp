@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useLocation } from "react-router-dom";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { db } from "../../firebase";
-import { Row, Col, Spin, Input, Button, Radio, Modal, message } from "antd";
+import { Row, Col, Spin, Input, Button, Radio, message } from "antd";
 import { LoadingOutlined } from "@ant-design/icons";
 import styles from "./style.module.scss";
 import dayjs from "dayjs";
