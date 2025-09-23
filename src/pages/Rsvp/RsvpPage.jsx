@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useLocation } from "react-router-dom";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { db } from "../../firebase";
-import { Row, Col, Spin, Input, Button, Radio, Modal } from "antd";
+import { Row, Col, Spin, Input, Button, Radio, Modal, message } from "antd";
 import { LoadingOutlined } from "@ant-design/icons";
 import styles from "./style.module.scss";
 import dayjs from "dayjs";
@@ -14,7 +14,7 @@ export default function RsvpPage() {
   const [guest, setGuest] = useState(null);
   const [error, setError] = useState(null);
   const [mode, setMode] = useState("view"); // "view" | "rsvp"
-  const [count, setCount] = useState(0);
+  const [count, setCount] = useState();
   const [loading, setLoading] = useState(true);
   const [radioValue, setRadioValue] = useState();
   const [showCount, setShowCount] = useState(false);
@@ -23,6 +23,12 @@ export default function RsvpPage() {
   const cutoffMillis = cutoffDate.getTime();
   const now = Date.now();
   const [expired] = useState(now > cutoffMillis);
+  const isOneSeat = guest?.attendance_max_count <= 1;
+
+  message.config({
+    top: 30, // distance from top
+    duration: 5, // seconds visible
+  });
 
   useEffect(() => {
     const fetchGuest = async () => {
@@ -63,11 +69,11 @@ export default function RsvpPage() {
     if (radioValue === "yes") {
       const number = parseInt(count, 10);
 
-      if (!number || number <= 0) {
+      if (!isOneSeat && (!number || number <= 0)) {
         setBtnLoad(false);
-        Modal.warning({
+        message.warning({
           title: "Invalid Number",
-          content: `You have ${guest.attendance_max_count} seats available. Please enter a number of participants less than or equal to ${guest.attendance_max_count} .`,
+          content: `You have ${guest.attendance_max_count} seats available. Please enter a number between 1 and ${guest.attendance_max_count}.`,
           centered: true,
         });
         return;
@@ -75,7 +81,7 @@ export default function RsvpPage() {
 
       if (number > guest.attendance_max_count) {
         setBtnLoad(false);
-        Modal.error({
+        message.error({
           title: "Exceeds Limit",
           content: `You cannot exceed your reserved seats (${guest.attendance_max_count}).`,
         });
@@ -84,7 +90,7 @@ export default function RsvpPage() {
 
       await updateDoc(docRef, {
         attending: "yes",
-        attendance_updated_count: number,
+        attendance_updated_count: isOneSeat ? 1 : number,
       });
 
       setGuest({
@@ -93,22 +99,24 @@ export default function RsvpPage() {
         attendance_updated_count: number,
       });
       setBtnLoad(false);
-      Modal.success({
+      message.success({
         title: "RSVP Confirmed",
-        content: `Your attendance has been confirmed for ${number} people.`,
+        content: isOneSeat
+          ? `Your attendance has been confirmed.`
+          : `Your attendance has been confirmed for ${number} people.`,
         centered: true,
       });
     } else if (radioValue === "no") {
       await updateDoc(docRef, { attending: "no", attendance_updated_count: 0 });
       setGuest({ ...guest, attending: "no", attendance_updated_count: 0 });
 
-      Modal.info({
+      message.info({
         title: "RSVP Updated",
         content: "You have confirmed that you will not attend.",
         centered: true,
       });
     } else {
-      Modal.info({
+      message.info({
         title: "Attendance Required",
         content: "Please select Yes or No before confirming your RSVP.",
         centered: true,
@@ -176,7 +184,14 @@ export default function RsvpPage() {
       <div>
         <p>We are delighted to invite you to be a part of our special day!</p>
         <p style={{ marginBottom: 20 }}>
-          You have <strong>{guest.attendance_max_count}</strong> seats reserved.
+          {isOneSeat ? (
+            ""
+          ) : (
+            <>
+              You have <strong>{guest.attendance_max_count}</strong> seats
+              reserved.
+            </>
+          )}
           Kindly confirm your participation at your earliest convenience so we
           can make the necessary arrangements.
         </p>
@@ -192,7 +207,7 @@ export default function RsvpPage() {
           <Radio value="no">Unfortunately, I won’t be able to attend</Radio>
         </Radio.Group>
       </div>
-      {showCount && (
+      {showCount && !isOneSeat && (
         <div>
           <p>
             Please confirm the number of attendees <br /> (up to{" "}
@@ -203,7 +218,10 @@ export default function RsvpPage() {
             value={count}
             min={1}
             max={guest.attendance_max_count}
-            onChange={(e) => setCount(e.target.value)}
+            onChange={(e) => {
+              const value = Number(e.target.value);
+              setCount(value);
+            }}
             style={{
               padding: "8px",
               fontSize: "16px",
@@ -227,14 +245,22 @@ export default function RsvpPage() {
 
   if (error) {
     return (
-      <Row justify="center" align="middle" style={{ minHeight: "100vh" }}>
+      <Row
+        justify="center"
+        align="middle"
+        style={{ height: "100dvh", margin: 0 }}
+      >
         <p style={{ color: "red" }}>{error}</p>
       </Row>
     );
   }
 
   return (
-    <Row justify="center" align="middle" style={{ minHeight: "100vh" }}>
+    <Row
+      justify="center"
+      align="middle"
+      style={{ height: "100dvh", margin: 0 }}
+    >
       <Col xs={20} sm={20} md={16} lg={10} xl={8}>
         <Spin
           indicator={<LoadingOutlined style={{ color: "#081a01" }} spin />}

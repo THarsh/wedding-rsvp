@@ -10,3 +10,9 @@
     font-weight: 300;
   }
 }
+
+@media (max-width: 375px) {
+  .mainWrapper {
+    padding: 15px;
+  }
+}

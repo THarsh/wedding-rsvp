@@ -276,7 +276,7 @@ export default function SummaryPage() {
             onChange={(e) => {
               const value = e.target.value;
               if (/^\d*$/.test(value)) {
-                seMaxCount(value);
+                seMaxCount(Number(e.target.value));
               }
             }}
           />
@@ -314,18 +314,21 @@ export default function SummaryPage() {
       >
         {editingGuest && (
           <Space direction="vertical" style={{ width: "100%" }}>
+            <label>Full Name</label>
             <Input
               value={editingGuest.fullName}
               onChange={(e) =>
                 setEditingGuest({ ...editingGuest, fullName: e.target.value })
               }
             />
+            <label>Token</label>
             <Input
               value={editingGuest.token}
               onChange={(e) =>
                 setEditingGuest({ ...editingGuest, token: e.target.value })
               }
             />
+            <label>Max Count</label>
             <Input
               type="number"
               value={editingGuest.attendance_max_count}
