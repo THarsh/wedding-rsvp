@@ -19,7 +19,7 @@ export default function RsvpPage() {
   const [radioValue, setRadioValue] = useState();
   const [showCount, setShowCount] = useState(false);
   const [btnLoad, setBtnLoad] = useState(false);
-  const cutoffDate = new Date("2025-11-08T23:59:59");
+  const cutoffDate = new Date("2025-10-15T23:59:59");
   const cutoffMillis = cutoffDate.getTime();
   const now = Date.now();
   const [expired] = useState(now > cutoffMillis);
@@ -96,7 +96,7 @@ export default function RsvpPage() {
       setGuest({
         ...guest,
         attending: "yes",
-        attendance_updated_count: number,
+        attendance_updated_count: isOneSeat ? 1 : number,
       });
       setBtnLoad(false);
       message.success({
@@ -143,7 +143,7 @@ export default function RsvpPage() {
         <p style={{ marginBottom: 12 }}>
           Change of plans?
           <br /> Don't worry! Update your RSVP before{" "}
-          <strong>{dayjs(cutoffMillis).format("MMMM,DD")}</strong>.
+          <strong>{dayjs(cutoffMillis).format("MMMM DD")}</strong>.
         </p>
       )}
       <Button
@@ -164,8 +164,9 @@ export default function RsvpPage() {
       </p>
       {!expired && (
         <p style={{ marginBottom: 12 }}>
-          Change RSVP available until:{" "}
-          <strong>{dayjs(cutoffMillis).format("YYYY/MM/DD")}</strong>
+          Change of plans?
+          <br /> Don't worry! Update your RSVP before{" "}
+          <strong>{dayjs(cutoffMillis).format("MMMM DD")}</strong>.
         </p>
       )}
       <Button

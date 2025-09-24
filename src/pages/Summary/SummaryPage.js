@@ -38,10 +38,16 @@ export default function SummaryPage() {
   const [token, setToken] = useState("");
   const [maxCount, seMaxCount] = useState();
   const [editingGuest, setEditingGuest] = useState(null);
+  const [searchText, setSearchText] = useState("");
+  const { Search } = Input;
 
   useEffect(() => {
     fetchInvitees();
   }, []);
+
+  const filteredInvitees = invitees.filter((guest) =>
+    guest.fullName?.toLowerCase().includes(searchText.toLowerCase())
+  );
 
   // Fetch invitees and sort attending first
   const fetchInvitees = async () => {
@@ -257,6 +263,13 @@ export default function SummaryPage() {
           <Button onClick={downloadExcel} icon={<DownloadOutlined />}>
             Download Excel
           </Button>
+          <Search
+            placeholder="Search by full name"
+            allowClear
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            style={{ width: 200 }}
+          />
         </Space>
         <Space>
           <Input
@@ -299,7 +312,7 @@ export default function SummaryPage() {
       </Space>
 
       <Table
-        dataSource={invitees}
+        dataSource={filteredInvitees}
         columns={columns}
         rowKey="id"
         loading={loading}
