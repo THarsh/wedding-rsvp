@@ -12,11 +12,13 @@ import {
   Table,
   Button,
   Input,
-  Space,
+  Row,
+  Col,
   Typography,
   Popconfirm,
   message,
   Modal,
+  Space,
 } from "antd";
 import {
   CopyOutlined,
@@ -26,6 +28,7 @@ import {
 import * as XLSX from "xlsx";
 
 const { Title } = Typography;
+const { Search } = Input;
 
 export default function SummaryPage() {
   const [invitees, setInvitees] = useState([]);
@@ -40,8 +43,8 @@ export default function SummaryPage() {
   const [maxCount, seMaxCount] = useState();
   const [editingGuest, setEditingGuest] = useState(null);
   const [searchText, setSearchText] = useState("");
-  const { Search } = Input;
 
+  // Real-time Firestore subscription
   useEffect(() => {
     const unsubscribe = onSnapshot(
       collection(db, "invitees"),
@@ -67,7 +70,6 @@ export default function SummaryPage() {
       }
     );
 
-    // Cleanup listener on unmount
     return () => unsubscribe();
   }, []);
 
@@ -126,9 +128,7 @@ export default function SummaryPage() {
       setFullName("");
       setUniqueId("");
       setToken("");
-
-      // Prepend new guest so it appears at top
-      setInvitees((prev) => [newGuest, ...prev]);
+      seMaxCount(undefined);
     } catch (err) {
       message.error("Failed to add invitee");
     } finally {
@@ -140,7 +140,6 @@ export default function SummaryPage() {
     try {
       await deleteDoc(doc(db, "invitees", id));
       message.success("Deleted successfully");
-      setInvitees((prev) => prev.filter((g) => g.id !== id));
     } catch (err) {
       message.error("Delete failed");
     }
@@ -262,72 +261,80 @@ export default function SummaryPage() {
     <div style={{ padding: 20 }}>
       <Title level={2}>Wedding RSVP Summary</Title>
 
-      <Space
-        style={{
-          marginBottom: 20,
-          display: "flex",
-          justifyContent: "space-between",
-        }}
-      >
-        <Space>
-          <Typography.Text strong style={{ color: "#14a477" }}>
-            Total Invited: {totalInvited}
-          </Typography.Text>
-          <Typography.Text strong style={{ color: "#0b7151" }}>
-            Confirmed: {totalConfirmed}
-          </Typography.Text>
-        </Space>
-        <Space>
-          <Button onClick={downloadExcel} icon={<DownloadOutlined />}>
-            Download Excel
-          </Button>
-          <Search
-            placeholder="Search by full name"
-            allowClear
-            value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
-            style={{ width: 200 }}
-          />
-        </Space>
-        <Space>
-          <Input
-            placeholder="Full Name"
-            value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
-          />
-          <Input
-            placeholder="Unique ID"
-            value={uniqueId}
-            onChange={(e) => setUniqueId(e.target.value)}
-          />
-          <Input
-            type="number"
-            placeholder="Max count"
-            value={maxCount}
-            onChange={(e) => {
-              const value = e.target.value;
-              if (/^\d*$/.test(value)) {
-                seMaxCount(Number(e.target.value));
-              }
-            }}
-          />
-          <Input
-            placeholder="Token"
-            value={token}
-            readOnly
-            style={{ width: 120 }}
-          />
-          <Button onClick={generateToken}>Generate Token</Button>
-          <Button
-            type="primary"
-            onClick={handleAddInvitee}
-            icon={<PlusOutlined />}
-            loading={buttonLoading}
-          >
-            Add Invitee
-          </Button>
-        </Space>
-      </Space>
+      <Row gutter={[16, 16]} style={{ marginBottom: 20 }}>
+        {/* Totals */}
+        <Col xs={24} md={6}>
+          <Space direction="vertical">
+            <Typography.Text strong style={{ color: "#14a477" }}>
+              Total Invited: {totalInvited}
+            </Typography.Text>
+            <Typography.Text strong style={{ color: "#0b7151" }}>
+              Confirmed: {totalConfirmed}
+            </Typography.Text>
+          </Space>
+        </Col>
+
+        {/* Download + Search */}
+        <Col xs={24} md={8}>
+          <Space style={{ width: "100%" }}>
+            <Button block onClick={downloadExcel} icon={<DownloadOutlined />}>
+              Download Excel
+            </Button>
+            <Search
+              placeholder="Search by full name"
+              allowClear
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              style={{ flex: 1 }}
+            />
+          </Space>
+        </Col>
+
+        {/* Add Invitee Form */}
+        <Col xs={24} md={10}>
+          <Space direction="vertical" style={{ width: "100%" }}>
+            <Input
+              placeholder="Full Name"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+            />
+            <Input
+              placeholder="Unique ID"
+              value={uniqueId}
+              onChange={(e) => setUniqueId(e.target.value)}
+            />
+            <Input
+              type="number"
+              placeholder="Max count"
+              value={maxCount}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (/^\d*$/.test(value)) {
+                  seMaxCount(Number(e.target.value));
+                }
+              }}
+            />
+            <Space>
+              <Input
+                placeholder="Token"
+                value={token}
+                readOnly
+                style={{ width: 120 }}
+              />
+              <Button onClick={generateToken}>Generate</Button>
+            </Space>
+            <Button
+              type="primary"
+              block
+              onClick={handleAddInvitee}
+              icon={<PlusOutlined />}
+              loading={buttonLoading}
+            >
+              Add Invitee
+            </Button>
+          </Space>
+        </Col>
+      </Row>
 
       <Table
         dataSource={filteredInvitees}
@@ -335,6 +342,11 @@ export default function SummaryPage() {
         rowKey="id"
         loading={loading}
         bordered
+        scroll={{ x: "max-content" }} // horizontal scroll on small screens
+        pagination={{
+          pageSize: 8,
+          showSizeChanger: false, // remove page size dropdown
+        }}
       />
 
       <Modal
