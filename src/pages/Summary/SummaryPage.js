@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
 import {
   collection,
-  getDocs,
   setDoc,
   doc,
   deleteDoc,
   updateDoc,
+  onSnapshot,
 } from "firebase/firestore";
 import { db } from "../../firebase";
 import {
@@ -31,6 +31,7 @@ export default function SummaryPage() {
   const [invitees, setInvitees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [buttonLoading, setButtonLoading] = useState(false);
+  const baseUrl = process.env.REACT_APP_BASE_URL || window.location.origin;
 
   // Form state
   const [fullName, setFullName] = useState("");
@@ -42,35 +43,47 @@ export default function SummaryPage() {
   const { Search } = Input;
 
   useEffect(() => {
-    fetchInvitees();
+    const unsubscribe = onSnapshot(
+      collection(db, "invitees"),
+      (querySnapshot) => {
+        const data = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+
+        // Sort attending first
+        data.sort((a, b) => {
+          if (a.attending && !b.attending) return -1;
+          if (!a.attending && b.attending) return 1;
+          return 0;
+        });
+        setInvitees(data);
+        setLoading(false);
+      },
+      (error) => {
+        message.error("Error fetching invitees in real-time");
+        console.error(error);
+        setLoading(false);
+      }
+    );
+
+    // Cleanup listener on unmount
+    return () => unsubscribe();
   }, []);
+
+  const totalInvited = invitees.reduce(
+    (sum, guest) => sum + (guest.attendance_max_count || 0),
+    0
+  );
+
+  const totalConfirmed = invitees.reduce(
+    (sum, guest) => sum + (guest.attendance_updated_count || 0),
+    0
+  );
 
   const filteredInvitees = invitees.filter((guest) =>
     guest.fullName?.toLowerCase().includes(searchText.toLowerCase())
   );
-
-  // Fetch invitees and sort attending first
-  const fetchInvitees = async () => {
-    try {
-      setLoading(true);
-      const querySnapshot = await getDocs(collection(db, "invitees"));
-      const data = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-      // Sort attending first
-      data.sort((a, b) => {
-        if (a.attending && !b.attending) return -1;
-        if (!a.attending && b.attending) return 1;
-        return 0;
-      });
-      setInvitees(data);
-    } catch (error) {
-      message.error("Error fetching invitees");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   // Generate random 4-char token
   const generateToken = () => {
@@ -143,7 +156,6 @@ export default function SummaryPage() {
       });
       message.success("Updated successfully");
       setEditingGuest(null);
-      fetchInvitees();
     } catch (err) {
       message.error("Update failed");
     }
@@ -155,8 +167,6 @@ export default function SummaryPage() {
     XLSX.utils.book_append_sheet(wb, ws, "Invitees");
     XLSX.writeFile(wb, "invitees.xlsx");
   };
-
-  const baseUrl = process.env.REACT_APP_BASE_URL || window.location.origin;
 
   const columns = [
     {
@@ -259,6 +269,14 @@ export default function SummaryPage() {
           justifyContent: "space-between",
         }}
       >
+        <Space>
+          <Typography.Text strong style={{ color: "#14a477" }}>
+            Total Invited: {totalInvited}
+          </Typography.Text>
+          <Typography.Text strong style={{ color: "#0b7151" }}>
+            Confirmed: {totalConfirmed}
+          </Typography.Text>
+        </Space>
         <Space>
           <Button onClick={downloadExcel} icon={<DownloadOutlined />}>
             Download Excel
