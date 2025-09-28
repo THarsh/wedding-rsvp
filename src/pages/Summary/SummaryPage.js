@@ -161,7 +161,16 @@ export default function SummaryPage() {
   };
 
   const downloadExcel = () => {
-    const ws = XLSX.utils.json_to_sheet(invitees);
+    const dataWithUrls = invitees.map((guest) => ({
+      FullName: guest.fullName,
+      UniqueID: guest.id,
+      Token: guest.token,
+      Attending: guest.attending ?? "-",
+      AttendanceMaxCount: guest.attendance_max_count ?? 0,
+      AttendanceUpdatedCount: guest.attendance_updated_count ?? 0,
+      URL: `${baseUrl}/rsvp/${guest.id}?token=${guest.token}`,
+    }));
+    const ws = XLSX.utils.json_to_sheet(dataWithUrls);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Invitees");
     XLSX.writeFile(wb, "invitees.xlsx");
